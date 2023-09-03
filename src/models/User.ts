@@ -87,13 +87,12 @@ class User extends Model {
   }
   
 
-  static async createAccount(username: string, email: string, password: string, role: string | null = null): Promise<User | null> {
+  static async createAccount(username: string, email: string, password: string): Promise<User | null> {
     try {
       const newUser = await User.create({
         username,
         email,
         password,
-        role
       });
 
       return newUser;
