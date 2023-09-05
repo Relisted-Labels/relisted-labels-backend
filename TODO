@@ -1,4 +1,2 @@
 Write new README
-Host on render
 Add new tasks as necessary
-Fix error: Error: write EPROTO 69312776:error:100000f7:SSL routines:OPENSSL_internal:WRONG_VERSION_NUMBER:../../../../src/third_party/boringssl/src/ssl/tls_record.cc:242:
