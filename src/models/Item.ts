@@ -1,9 +1,10 @@
-import { Model, DataTypes, Sequelize } from 'sequelize';
+import { Model, DataTypes } from 'sequelize';
 import sequelize from '../config/database';
 import { Op } from 'sequelize';
 import User from './User';
 import Category from './Category';
 import Tags from './Tags';
+import Collection from './Collection';
 
 
 export enum SearchCriterion {
@@ -12,8 +13,9 @@ export enum SearchCriterion {
     Tag = 'tag',
     DressType = 'dressType',
     Location = 'location',
+    ItemName = 'title',
 }
-
+;
 interface ItemSearchCriteria {
     criterion: SearchCriterion;
     value: string;
@@ -24,7 +26,7 @@ class Item extends Model {
   public title!: string;
   public description!: string;
   public category_id!: number;
-  public owner_id!: number;
+  public user_id!: number;
   public collection_id!: number;
   public image_url!: string | null; // Add this property
   public stock_quantity!: number;
@@ -37,14 +39,21 @@ class Item extends Model {
   public created_at!: Date;
   public updated_at!: Date | null;
 
+  static associate(models: any) {
+    Item.belongsTo(User, { foreignKey: 'user_id', as: 'owner' });
+    Item.belongsTo(Collection, { foreignKey: 'collection_id', as: 'collection' });
+    Item.belongsTo(Category, { foreignKey: 'category_id', as: 'category' });
+  }
+  
   static async createItem(
     title: string,
     description: string,
     category_id: number,
-    owner_id: number,
+    user_id: number,
     collection_id: number,
     image_url: string | null,
     stock_quantity: number,
+    sale_type: string,
     price: number,
     rental_price: number,
     price_per_day: number,
@@ -57,10 +66,11 @@ class Item extends Model {
         title,
         description,
         category_id,
-        owner_id,
+        user_id,
         collection_id,
         image_url,
         stock_quantity,
+        sale_type,
         price,
         rental_price,
         price_per_day,
@@ -88,60 +98,65 @@ class Item extends Model {
 
   static async searchItems(searchCriteria: ItemSearchCriteria): Promise<Item[]> {
     try {
-        const whereClause: any = {};
-
-        switch (searchCriteria.criterion) {
-            case SearchCriterion.UserName:
-                whereClause['$User.username$'] = {
-                    [Op.like]: `%${searchCriteria.value}%`,
-                };
-                break;
-
-            case SearchCriterion.CategoryName:
-                whereClause['$Category.name$'] = {
-                    [Op.like]: `%${searchCriteria.value}%`,
-                };
-                break;
-
-            case SearchCriterion.Tag:
-                whereClause['$Tags.name$'] = {
-                    [Op.like]: `%${searchCriteria.value}%`,
-                };
-                break;
-
-            case SearchCriterion.DressType:
-                whereClause['dress_type'] = {
-                    [Op.like]: `%${searchCriteria.value}%`,
-                };
-                break;
-
-            case SearchCriterion.Location:
-                whereClause['location'] = {
-                    [Op.like]: `%${searchCriteria.value}%`,
-                };
-                break;
-
-            default:
-                throw new Error('Invalid search criterion');
-        }
-
-        // Perform the search query
-        const items = await Item.findAll({
-            where: whereClause,
-            include: [
-                // Include User, Category, and Tags models to access their attributes
-                { model: User, as: 'User', attributes: ['username'] },
-                { model: Category, as: 'Category', attributes: ['name'] },
-                { model: Tags, as: 'Tags', attributes: ['name'] },
-            ],
-        });
-
-        return items;
+      const whereClause: any = {};
+  
+      switch (searchCriteria.criterion) {
+        case SearchCriterion.UserName:
+          whereClause['$owner.username$'] = {
+            [Op.like]: `%${searchCriteria.value}%`,
+          };
+          break;
+  
+        case SearchCriterion.CategoryName:
+          whereClause['$category.name$'] = {
+            [Op.like]: `%${searchCriteria.value}%`,
+          };
+          break;
+  
+        case SearchCriterion.Tag:
+          whereClause['$Tags.name$'] = {
+            [Op.like]: `%${searchCriteria.value}%`,
+          };
+          break;
+  
+        case SearchCriterion.DressType:
+          whereClause['dress_type'] = {
+            [Op.like]: `%${searchCriteria.value}%`,
+          };
+          break;
+  
+        case SearchCriterion.Location:
+          whereClause['location'] = {
+            [Op.like]: `%${searchCriteria.value}%`,
+          };
+          break;
+  
+        case SearchCriterion.ItemName:
+          whereClause['title'] = {
+            [Op.like]: `%${searchCriteria.value}%`,
+          };
+          break;
+  
+        default:
+          throw new Error('Invalid search criterion');
+      }
+  
+      const items = await Item.findAll({
+        where: whereClause,
+        include: [
+          { model: User, as: 'owner', attributes: ['username'] },
+          { model: Category, as: 'category', attributes: ['name'] },
+          { model: Collection, as: 'collection', attributes: ['name'] },
+        ],
+      });
+  
+      return items;
     } catch (error) {
-        console.error('Error searching items:', error);
-        return [];
+      console.error('Error searching items:', error);
+      return [];
     }
-}
+  }
+  
 
   static async updateItem(
     itemId: number,
@@ -163,7 +178,7 @@ class Item extends Model {
 
   static async getItemsByOwner(ownerId: number): Promise<Item[]> {
     try {
-      return await Item.findAll({ where: { owner_id: ownerId } });
+      return await Item.findAll({ where: { user_id: ownerId } });
     } catch (error) {
       console.error('Error getting items by owner:', error);
       return [];
@@ -201,7 +216,7 @@ Item.init(
         key: 'id',
       },
     },
-    owner_id: {
+    user_id: {
       type: DataTypes.INTEGER,
       references: {
         model: 'User',
@@ -222,6 +237,10 @@ Item.init(
     stock_quantity: {
       type: DataTypes.INTEGER,
     },
+    sale_type: {
+      type: DataTypes.ENUM('Rent Only', 'Rent or Purchase', 'Purchase Only'),
+      allowNull: false,
+    },
     price: {
       type: DataTypes.DECIMAL,
     },
@@ -240,14 +259,13 @@ Item.init(
     location: {
       type: DataTypes.STRING(255),
     },
-    created_at: {
+    createdAt: {
       type: DataTypes.DATE,
       defaultValue: DataTypes.NOW,
       allowNull: false,
     },
-    updated_at: {
+    updatedAt: {
       type: DataTypes.DATE,
-      defaultValue: DataTypes.NOW,
       allowNull: false,
     },
   },

@@ -55,7 +55,13 @@ export const getItemsInCategory = async (req: Request, res: Response): Promise<v
 
 export const searchItems = async (req: Request, res: Response): Promise<void> => {
   try {
-    const { criterion, value } = req.body;
+    const { criterion, value } = req.params;
+    console.log(criterion, value);
+
+    if (!Object.values(SearchCriterion).includes(criterion as SearchCriterion)) {
+     res.status(400).json({ message: 'Invalid search criterion' });
+     return;
+    }
 
     let items = [];
     switch (criterion) {
@@ -86,6 +92,12 @@ export const searchItems = async (req: Request, res: Response): Promise<void> =>
       case SearchCriterion.Location:
         items = await Item.searchItems({
           criterion: SearchCriterion.Location,
+          value,
+        });
+        break;
+        case SearchCriterion.ItemName:
+        items = await Item.searchItems({
+          criterion: SearchCriterion.ItemName,
           value,
         });
         break;
