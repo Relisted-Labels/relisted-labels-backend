@@ -4,7 +4,7 @@ import { upload } from './config/multerConfig';
 import express from 'express';
 import authRouter from './routes/auth';
 import itemRouter from './routes/items';
-import cors from 'cors'
+import cors from 'cors';
 
 const app = express();
 app.use(express.json());
@@ -19,13 +19,14 @@ app.use((req, res, next) => {
 });
 
 const corsOptions = {
-  origin: true, //for now
-  optionsSuccessStatus: 200, // Some legacy browsers (IE11) choke on 204
+  origin: ['http://localhost:3000/'], // Add other allowed origins as needed
+  methods: ['GET', 'POST', 'PUT', 'DELETE'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+  optionsSuccessStatus: 200, // Set the appropriate success status for preflight requests
 };
 
 // Enable CORS for all routes or for specific routes as needed
 app.use(cors(corsOptions));
-
 
 app.use('/auth', authRouter);
 app.use('/items', itemRouter);
