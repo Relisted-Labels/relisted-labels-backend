@@ -9,17 +9,17 @@ import cors from 'cors';
 const app = express();
 app.use(express.json());
 
-app.use((req, res, next) => {
-  if (req.method === 'OPTIONS') {
-    res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE');
-    res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization');
-    return res.sendStatus(200);
-  }
-  next();
-});
+// app.use((req, res, next) => {
+//   if (req.method === 'OPTIONS') {
+//     res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE');
+//     res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+//     return res.sendStatus(200);
+//   }
+//   next();
+// });
 
 const corsOptions = {
-  origin: ['http://localhost:3000/'], // Add other allowed origins as needed
+  origin: true, // Add other allowed origins as needed
   methods: ['GET', 'POST', 'PUT', 'DELETE'],
   allowedHeaders: ['Content-Type', 'Authorization'],
   optionsSuccessStatus: 200, // Set the appropriate success status for preflight requests
@@ -27,7 +27,6 @@ const corsOptions = {
 
 // Enable CORS for all routes or for specific routes as needed
 app.use(cors(corsOptions));
-
 app.use('/auth', authRouter);
 app.use('/items', itemRouter);
 
