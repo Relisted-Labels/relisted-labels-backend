@@ -13,6 +13,6 @@ const itemRouter = express.Router();
 itemRouter.use(express.json());
 
 itemRouter.post('/createItem', upload.array('images', 5), createItem);
-itemRouter.get('/search/:criterion/:value', searchItems);
+itemRouter.get('/search:criterion:value', searchItems);
 
 export default itemRouter;
