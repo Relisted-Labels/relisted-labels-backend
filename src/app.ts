@@ -3,7 +3,7 @@ dotenv.config();
 import { upload } from './config/multerConfig';
 import express from 'express';
 import authRouter from './routes/auth';
-import itemRouter from './routes/items';
+// import itemRouter from './routes/items';
 import cors from 'cors';
 
 const app = express();
@@ -28,7 +28,7 @@ const corsOptions = {
 // Enable CORS for all routes or for specific routes as needed
 app.use(cors(corsOptions));
 app.use('/auth', authRouter);
-app.use('/items', itemRouter);
+// app.use('/items', itemRouter);
 
 // ... Other app configurations
 

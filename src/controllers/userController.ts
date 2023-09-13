@@ -69,3 +69,31 @@ export async function loginUser(req: Request, res: Response): Promise<void> {
   }
 }
 
+
+export function tokenVerification(req: Request, res: Response, next: Function) {
+    const token = req.headers.authorization?.split(' ')[1];
+
+    if (token) {
+      const expDate = (jwt.decode(token) as { exp: number })?.exp;
+      let now = new Date().getTime() / 1000;
+
+      if (expDate < now) {
+        try {
+          const verifyToken = jwt.verify(token, jwtSecret);
+          next();
+        } catch (error) {
+          res.status(403).json({ message: 'Invalid token. Please login again.' });
+        }
+
+        next(); 
+      } else {
+        let user = jwt.decode(token);
+        const userToken = jwt.sign({ user }, jwtSecret, { expiresIn: '1h' });
+        res.setHeader('Authorization', `Bearer ${userToken}`);
+        next();
+      }
+
+    } else {
+      res.status(401).json({ message: 'Always include the JWT in your headers!' });
+    }
+}

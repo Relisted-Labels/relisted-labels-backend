@@ -14,8 +14,7 @@ export enum SearchCriterion {
     DressType = 'dressType',
     Location = 'location',
     ItemName = 'title',
-}
-;
+};
 interface ItemSearchCriteria {
     criterion: SearchCriterion;
     value: string;
