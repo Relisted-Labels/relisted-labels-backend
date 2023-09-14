@@ -18,6 +18,7 @@
     "@types/express-fileupload": "^1.4.1",
     "@types/express-session": "^1.17.7",
     "@types/jsonwebtoken": "^9.0.2",
+    "@types/nodemailer": "^6.4.10",
     "@types/passport": "^1.0.12",
     "dotenv": "^16.3.1",
     "ejs": "^3.1.9",

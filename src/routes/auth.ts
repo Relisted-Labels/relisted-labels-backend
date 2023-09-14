@@ -1,5 +1,5 @@
 import express from 'express';
-import { registerUser, loginUser } from '../controllers/userController';
+import { registerUser, loginUser, forgotPassword } from '../controllers/userController';
 
 // Authorization Routes
 
@@ -13,5 +13,6 @@ authRouter.use(express.json());
 
 authRouter.post('/register', registerUser);
 authRouter.post('/login', loginUser);
+authRouter.post('/forgot-password', forgotPassword);
 
 export default authRouter;
