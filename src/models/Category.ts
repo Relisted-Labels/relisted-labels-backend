@@ -5,6 +5,9 @@ class Category extends Model {
     id!: number;
     name!: string;
 
+    static associate(models: any) {
+        Category.hasMany(models.Item);
+    }
 
     static async createCategory(name: string): Promise<Category | null> {
         try {

@@ -1,5 +1,4 @@
 import express from 'express';
-import { registerUser, loginUser } from '../controllers/userController';
 import dotenv from 'dotenv';
 import passport from 'passport';
 import { Strategy as GoogleStrategy } from 'passport-google-oauth20';
@@ -11,6 +10,7 @@ dotenv.config();
 // const GOOGLE_CLIENT_SECRET: string | undefined = process.env.GOOGLE_CLIENT_SECRET;
 const GOOGLE_CLIENT_ID = '323186463910-4v9a3k031bka5cdfnjcs4tubumqinvvo.apps.googleusercontent.com';
 const GOOGLE_CLIENT_SECRET = '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';
+import { registerUser, loginUser, forgotPassword } from '../controllers/userController';
 
 // Authorization Routes
 
@@ -44,6 +44,7 @@ authRouter.use(express.json());
 
 authRouter.post('/register', registerUser);
 authRouter.post('/login', loginUser);
+authRouter.post('/forgot-password', forgotPassword);
 
 export default authRouter;
 

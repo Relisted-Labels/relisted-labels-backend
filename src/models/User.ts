@@ -1,6 +1,7 @@
 import { DataTypes, Model } from 'sequelize';
 import sequelize from '../config/database';
 import bcrypt from 'bcrypt';
+import Item from './Item';
 
 class User extends Model {
   private id!: number;
@@ -8,6 +9,9 @@ class User extends Model {
   private passwordHash!: string;
   private email!: string;
 
+  static associate(models: any) {
+    User.hasMany(Item);
+  }
 
   getId(): number {
     return this.id;
