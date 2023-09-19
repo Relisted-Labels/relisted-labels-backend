@@ -1,12 +1,13 @@
 import { Request, Response } from 'express';
 import User from '../models/User';
+import RefreshToken from '../models/RefreshToken';
+import UserProfile from '../models/UserProfile';
 import bcrypt from 'bcrypt';
 import { Op } from 'sequelize';
 import jwt from 'jsonwebtoken';
 import { sendEmail } from '../utils/email';
 
 const jwtSecret = process.env.JWT_SECRET ?? 'default-secret';
-
 
 export async function registerUser(req: Request, res: Response): Promise<void> {
   const { username, email, password } = req.body;
@@ -26,23 +27,62 @@ export async function registerUser(req: Request, res: Response): Promise<void> {
     const saltRounds = 10;
     const hashedPassword = await bcrypt.hash(password, saltRounds);
 
-    const newUser = await User.createAccount(username, email, hashedPassword);
+    const isOnboarded = false;
+    const isEmailVerified = false;
+
+    const newUser = await User.createAccount(username, email, hashedPassword, isOnboarded, isEmailVerified);
+
 
     if (newUser) {
-      const userWithoutPassword = { ...newUser.toJSON() };
+        const token = RefreshToken.createToken(newUser.getId());
+        const userWithoutPassword = { ...newUser.toJSON() };
         delete userWithoutPassword.password;
-      const token = jwt.sign({ user: userWithoutPassword }, jwtSecret, { expiresIn: '1h' });
+        const accessToken = jwt.sign({ user: userWithoutPassword }, jwtSecret, { expiresIn: '1h' });
+        res.status(201).json({ message: "Account created successfully! Please verify your email then go through the onboarding stages.", token: accessToken, isOnboarded: isOnboarded, isEmailVerified: false });
 
-      res.status(201).json({ message: 'User account created successfully', token });
     } else {
-      res.status(500).json({ message: 'Failed to create user account' });
+      res.status(500).json({ error: 'Failed to create user account' });
     }
   } catch (error) {
     console.error('Error creating user account:', error);
+   res.status(500).json({ message: 'An error occurred' });
+  }
+}
+
+export async function startVerifyUserEmail(req: Request, res: Response): Promise<void> {
+  const { userId, email } = req.body;
+  const verifyToken = Math.floor(Math.random() * (999999 - 100000 + 1)) + 100000;
+  const verifyLink = jwt.sign({ userId, verifyToken }, jwtSecret, { expiresIn: '1h' });
+  const emailText = `<p>Welcome to Relisted Labels! This is a fashion forward platform that promotes re-use and upcycling of African styles, that will make you look like a glamorous African Queen!</p><p>To verify your email, click on the link below:</p><p><a href="http://relisted-labels-frontend.vercel.app/verifyEmail/${verifyLink}">Verify Email</a></p>`;
+  try {
+    await sendEmail(email, 'Verify your email', emailText);
+    res.status(200).json({ message: 'Email sent' });
+  } catch (error) {
+    console.error('Error sending email:', error);
     res.status(500).json({ message: 'An error occurred' });
   }
 }
 
+export async function endVerifyUserEmail(req: Request, res: Response): Promise<void> {
+  const { verifyToken, userId } = req.body;
+
+  try {
+    const decodedToken = jwt.verify(verifyToken, jwtSecret) as { userId: number; verifyToken: string };
+
+    if (decodedToken.userId === userId && decodedToken.verifyToken) {
+      const user = await User.getUserById(userId);
+      if (user) {
+        user.verifyUserEmail();
+        res.status(200).json({ message: 'Email verified successfully' }); 
+      }
+    } else {
+      res.status(400).json({ message: 'Invalid or expired verification token' });
+    }
+  } catch (error) {
+    console.error('Error verifying email:', error);
+    res.status(500).json({ error: 'This token is either expired or invalid. Please try again.' });
+  }
+}
 
 
 export async function loginUser(req: Request, res: Response): Promise<void> {

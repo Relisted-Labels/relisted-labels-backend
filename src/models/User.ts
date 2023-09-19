@@ -2,15 +2,22 @@ import { DataTypes, Model } from 'sequelize';
 import sequelize from '../config/database';
 import bcrypt from 'bcrypt';
 import Item from './Item';
+import RefreshToken from './RefreshToken';
+import UserProfile from './UserProfile';
 
 class User extends Model {
   private id!: number;
   private username!: string;
-  private passwordHash!: string;
+  private password!: string;
   private email!: string;
+  private is_onboarded!: boolean;
+  private is_email_verified!: boolean;
 
   static associate(models: any) {
     User.hasMany(Item);
+    User.hasOne(RefreshToken);
+    User.hasOne(UserProfile);
+
   }
 
   getId(): number {
@@ -35,6 +42,27 @@ class User extends Model {
       return false;
     }  }
 
+    static async getUserById(id: number): Promise<User | null> {
+      try {
+        const user = await User.findByPk(id);
+        return user;
+      } catch (error) {
+        console.error('Error fetching user by id:', error);
+        return null;
+      }
+    }
+
+    async verifyUserEmail(): Promise<boolean> {
+      try {
+        this.is_email_verified = true;
+        await this.save();
+        return true;
+      } catch (error) {
+        console.error('Error verifying user email:', error);
+        return false;
+      }
+    }
+
 
   async updateEmail(newEmail: string): Promise<boolean> {
     try {
@@ -49,7 +77,7 @@ class User extends Model {
 
   async updatePassword(newPassword: string): Promise<boolean> {
     try {
-      this.passwordHash = newPassword;
+      this.password = newPassword;
       await this.save();
       return true;
     } catch (error) {
@@ -91,12 +119,14 @@ class User extends Model {
   }
   
 
-  static async createAccount(username: string, email: string, password: string): Promise<User | null> {
+  static async createAccount(username: string, email: string, password: string, isOnboarded: boolean, isEmailVerified: boolean): Promise<User | null> {
     try {
       const newUser = await User.create({
         username,
         email,
         password,
+        is_onboarded: isOnboarded,
+        is_email_verified: isEmailVerified,
       });
 
       return newUser;
@@ -126,6 +156,15 @@ User.init(
       type: DataTypes.STRING,
       allowNull: false,
     },
+    is_onboarded: {
+      type: DataTypes.BOOLEAN,
+      allowNull: false,
+      defaultValue: false
+    },
+    is_email_verified: {
+      type: DataTypes.BOOLEAN,
+      allowNull: false
+  },
   },
   {
     sequelize,
