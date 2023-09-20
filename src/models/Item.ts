@@ -5,6 +5,7 @@ import User from './User';
 import Category from './Category';
 import Tags from './Tags';
 import Collection from './Collection';
+import Review from './Review';
 
 
 export enum SearchCriterion {
@@ -42,6 +43,7 @@ class Item extends Model {
     Item.belongsTo(User, { foreignKey: 'user_id', as: 'owner' });
     Item.belongsTo(Collection, { foreignKey: 'collection_id', as: 'collection' });
     Item.belongsTo(Category, { foreignKey: 'category_id', as: 'category' });
+    Item.hasMany(Review);
   }
   
   static async createItem(
@@ -190,6 +192,37 @@ class Item extends Model {
     } catch (error) {
       console.error('Error getting available items:', error);
       return [];
+    }
+  }
+
+  static async getAllItemRatings(item_id: number): Promise<Review[]> {
+    try {
+      const reviews = await Review.getReviewsByItem(item_id);
+      let reviewsWithReview: Review[] = [];
+      reviews.forEach(review => {
+        if (review.getReview != null) {
+          reviewsWithReview.push(review);
+        };
+      });
+      return reviewsWithReview;
+    } catch (error) {
+      console.error('Error retrieving reviews:', error);
+      return [];
+    }
+  }
+
+  static async getItemRating(item_id: number): Promise<number> {
+    try {
+      let rating: number = 0;  
+      const reviews = await Review.getReviewsByItem(item_id);
+      reviews.forEach(review => {
+        rating += review.getRating()
+      });
+
+      return (rating/reviews.length); // return average rating
+    } catch (error) {
+      console.error('Error getting item rating', error);
+      return 50; // return impossiple rating. Frpntend should check if rating > 5
     }
   }
 }
