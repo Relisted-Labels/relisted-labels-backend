@@ -7,13 +7,13 @@ const jwtSecret = process.env.JWT_SECRET || 'secret';
 class RefreshToken extends Model {
     public id!: number;
     public token!: string;
-    public userId!: number;
+    private userId!: number;
 
     static associate(models: any) {
         RefreshToken.belongsTo(models.User, { foreignKey: 'userId' });
     }
 
-    public async destroy(): Promise<void> {
+    public async destroyToken(): Promise<void> {
         try {
             await this.destroy();
         } catch (error) {
@@ -34,6 +34,17 @@ class RefreshToken extends Model {
            console.log("Error creating token:", error)
            return null;
         }
+    
+    }
+
+    public async checkTokenValidity(): Promise<boolean> {
+        try {
+            const decoded = jwt.verify(this.token, jwtSecret);
+            return true;
+        } catch (error) {
+            console.error('Error checking token expiry:', error);
+            return false;
+        }    
     
     }
 

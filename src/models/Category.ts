@@ -1,5 +1,6 @@
 import { DataTypes, Model } from "sequelize";
 import sequelize from "../config/database";
+import Item from "./Item";
 
 class Category extends Model {
     id!: number;
@@ -27,6 +28,30 @@ class Category extends Model {
             return categories;
         } catch (error) {
             console.error('Error fetching categories:', error);
+            return null;
+        }
+    }
+
+    static async getCategoryById(categoryId: number): Promise<Category | null> {
+        try {
+            return await Category.findByPk(categoryId);
+        } catch (error) {
+            console.error('Error getting category by ID:', error);
+            return null;
+        }
+    }
+
+    static async fetchCategoriesWithItems(): Promise<Category[] | null> {
+        try {
+            const categories = await Category.findAll({
+                include: {
+                    model: Item,
+                    as: 'items',
+                },
+            });
+            return categories;
+        } catch (error) {
+            console.error('Error fetching categories with items:', error);
             return null;
         }
     }

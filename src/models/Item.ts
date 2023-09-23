@@ -1,196 +1,114 @@
-import { Model, DataTypes } from 'sequelize';
-import sequelize from '../config/database';
-import { Op } from 'sequelize';
-import User from './User';
-import Category from './Category';
-import Tags from './Tags';
-import Collection from './Collection';
+import { DataTypes, Model, Sequelize } from "sequelize";
+import sequelize from "../config/database";
+import User from "./User";
+import Category from "./Category";
+import Brand from './Brand'
 
-
-export enum SearchCriterion {
-    UserName = 'userName',
-    CategoryName = 'categoryName',
-    Tag = 'tag',
-    DressType = 'dressType',
-    Location = 'location',
-    ItemName = 'title',
-};
-interface ItemSearchCriteria {
-    criterion: SearchCriterion;
-    value: string;
-}
 
 class Item extends Model {
   public id!: number;
-  public title!: string;
-  public description!: string;
+  public owner_id!: number;
+  public owner_name!: string;
+  public item_pictures!: string[];
+  public item_type!: string;
+  public item_size!: string;
+  public tags!: string[];
+  public brand_id!: number;
   public category_id!: number;
-  public user_id!: number;
-  public collection_id!: number;
-  public image_url!: string | null; // Add this property
-  public stock_quantity!: number;
-  public price!: number;
-  public rental_price!: number;
-  public price_per_day!: number;
-  public minimal_rental_period!: number;
-  public is_available!: boolean;
-  public location!: string;
-  public created_at!: Date;
-  public updated_at!: Date | null;
+  public status!: string;
+  public item_name!: string;
+  public item_description!: string;
+  public color!: string;
+  public daily_price!: number;
+  public weekly_price!: number;
+  public monthly_price!: number;
+  public cleaning_fee!: number;
+  public transport_fee!: number;
+  public minimum_rental_period!: number;
 
   static associate(models: any) {
-    Item.belongsTo(User, { foreignKey: 'user_id', as: 'owner' });
-    Item.belongsTo(Collection, { foreignKey: 'collection_id', as: 'collection' });
-    Item.belongsTo(Category, { foreignKey: 'category_id', as: 'category' });
+    Item.belongsTo(models.User, { foreignKey: 'owner_id' });
+    Item.belongsTo(models.Brand, { foreignKey: 'brand_id' });
+    Item.belongsTo(models.Category, { foreignKey: 'category_id' });
   }
-  
-  static async createItem(
-    title: string,
-    description: string,
+  public static async createItem(
+    owner_id: number,
+    owner_name: string,
+    item_pictures: string[],
+    item_type: string,
+    item_size: string,
+    tags: string[],
+    brand_id: number,
     category_id: number,
-    user_id: number,
-    collection_id: number,
-    image_url: string | null,
-    stock_quantity: number,
-    sale_type: string,
-    price: number,
-    rental_price: number,
-    price_per_day: number,
-    minimal_rental_period: number,
-    is_available: boolean,
-    location: string
+    status: string,
+    item_name: string,
+    item_description: string,
+    color: string,
+    daily_price: number,
+    weekly_price: number,
+    monthly_price: number,
+    cleaning_fee: number,
+    transport_fee: number,
+    minimum_rental_period: number[]
   ): Promise<Item | null> {
     try {
-      const newItem = await this.create({
-        title,
-        description,
+      const newItem = await Item.create({
+        owner_id,
+        owner_name,
+        item_pictures,
+        item_type,
+        item_size,
+        tags,
+        brand_id,
         category_id,
-        user_id,
-        collection_id,
-        image_url,
-        stock_quantity,
-        sale_type,
-        price,
-        rental_price,
-        price_per_day,
-        minimal_rental_period,
-        is_available,
-        location,
+        status,
+        item_name,
+        item_description,
+        color,
+        daily_price,
+        weekly_price,
+        monthly_price,
+        cleaning_fee,
+        transport_fee,
+        minimum_rental_period,
       });
-
+  
       return newItem;
     } catch (error) {
       console.error('Error creating item:', error);
-      return null;
+      return null; // Return null on error
     }
   }
 
-  static async getItemById(itemId: number): Promise<Item | null> {
+  public static async getItem(id: number): Promise<Item | null> {
     try {
-      return await Item.findByPk(itemId);
-    } catch (error) {
-      console.error('Error getting item by ID:', error);
-      return null;
+    const item = await Item.findOne({
+      where: { id: id },
+      include: [
+        {
+          model: Category,
+          as: 'category',
+        },
+        {
+          model: Brand,
+          as: 'brand',
+        },
+        {
+          model: User,
+          as: 'owner',
+        },
+      ],
+    });
+
+    if (!item) {
+      return null; // Item with the given ID doesn't exist
     }
+
+    return item;
+  } catch (error) {
+    console.error('Error fetching item with details:', error);
+    throw error; // Handle the error as needed
   }
-
-
-  static async searchItems(searchCriteria: ItemSearchCriteria): Promise<Item[]> {
-    try {
-      const whereClause: any = {};
-  
-      switch (searchCriteria.criterion) {
-        case SearchCriterion.UserName:
-          whereClause['$owner.username$'] = {
-            [Op.like]: `%${searchCriteria.value}%`,
-          };
-          break;
-  
-        case SearchCriterion.CategoryName:
-          whereClause['$category.name$'] = {
-            [Op.like]: `%${searchCriteria.value}%`,
-          };
-          break;
-  
-        case SearchCriterion.Tag:
-          whereClause['$Tags.name$'] = {
-            [Op.like]: `%${searchCriteria.value}%`,
-          };
-          break;
-  
-        case SearchCriterion.DressType:
-          whereClause['dress_type'] = {
-            [Op.like]: `%${searchCriteria.value}%`,
-          };
-          break;
-  
-        case SearchCriterion.Location:
-          whereClause['location'] = {
-            [Op.like]: `%${searchCriteria.value}%`,
-          };
-          break;
-  
-        case SearchCriterion.ItemName:
-          whereClause['title'] = {
-            [Op.like]: `%${searchCriteria.value}%`,
-          };
-          break;
-  
-        default:
-          throw new Error('Invalid search criterion');
-      }
-  
-      const items = await Item.findAll({
-        where: whereClause,
-        include: [
-          { model: User, as: 'owner', attributes: ['username'] },
-          { model: Category, as: 'category', attributes: ['name'] },
-          { model: Collection, as: 'collection', attributes: ['name'] },
-        ],
-      });
-  
-      return items;
-    } catch (error) {
-      console.error('Error searching items:', error);
-      return [];
-    }
-  }
-  
-
-  static async updateItem(
-    itemId: number,
-    updatedFields: Partial<Item>
-): Promise<boolean> {
-    try {
-        const item = await Item.findByPk(itemId);
-        if (item) {
-            Object.assign(item, updatedFields);
-            await item.save();
-            return true;
-        }
-        return false;
-    } catch (error) {
-        console.error('Error updating item:', error);
-        return false;
-    }
-}
-
-  static async getItemsByOwner(ownerId: number): Promise<Item[]> {
-    try {
-      return await Item.findAll({ where: { user_id: ownerId } });
-    } catch (error) {
-      console.error('Error getting items by owner:', error);
-      return [];
-    }
-  }
-
-  static async getAvailableItems(): Promise<Item[]> {
-    try {
-      return await Item.findAll({ where: { is_available: true } });
-    } catch (error) {
-      console.error('Error getting available items:', error);
-      return [];
-    }
   }
 }
 
@@ -201,78 +119,104 @@ Item.init(
       autoIncrement: true,
       primaryKey: true,
     },
-    title: {
-      type: DataTypes.STRING(255),
+    owner_id: {
+      type: DataTypes.INTEGER,
+      allowNull: false,
+      references: {
+        model: 'users',
+        key: 'id'
+    }
+    },
+    owner_name: {
+      type: DataTypes.STRING,
+      allowNull: false,
+      references: {
+        model: 'users',
+        key: 'name'
+    }
+    },
+    item_pictures: {
+      type: DataTypes.ARRAY(DataTypes.STRING),
       allowNull: false,
     },
-    description: {
-      type: DataTypes.TEXT,
+    item_type: {
+      type: DataTypes.STRING,
+      allowNull: false,
+      references: {
+        model: 'dress_types',
+        key: 'name'
+      }
+    },
+    item_size: {
+      type: DataTypes.STRING,
+      allowNull: false,
+    },
+    tags: {
+      type: DataTypes.ARRAY(DataTypes.STRING),
+      allowNull: false,
+    },
+    brand_id: {
+      type: DataTypes.INTEGER,
+      allowNull: false,
+      references: {
+        model: 'brands',
+        key: 'id'
+      }
     },
     category_id: {
       type: DataTypes.INTEGER,
+      allowNull: false,
       references: {
-        model: 'Category',
-        key: 'id',
-      },
+        model: 'categories',
+        key: 'id'
+      }
     },
-    user_id: {
-      type: DataTypes.INTEGER,
-      references: {
-        model: 'User',
-        key: 'id',
-      },
-    },
-    collection_id: {
-      type: DataTypes.INTEGER,
-      references: {
-        model: 'Collection',
-        key: 'id',
-      },
-    },
-    image_url: {
+    status: {
       type: DataTypes.STRING,
-      allowNull: true,
-    },
-    stock_quantity: {
-      type: DataTypes.INTEGER,
-    },
-    sale_type: {
-      type: DataTypes.ENUM('Rent Only', 'Rent or Purchase', 'Purchase Only'),
       allowNull: false,
     },
-    price: {
-      type: DataTypes.DECIMAL,
-    },
-    rental_price: {
-      type: DataTypes.DECIMAL,
-    },
-    price_per_day: {
-      type: DataTypes.DECIMAL,
-    },
-    minimal_rental_period: {
-      type: DataTypes.INTEGER,
-    },
-    is_available: {
-      type: DataTypes.BOOLEAN,
-    },
-    location: {
-      type: DataTypes.STRING(255),
-    },
-    createdAt: {
-      type: DataTypes.DATE,
-      defaultValue: DataTypes.NOW,
+    item_name: {
+      type: DataTypes.STRING,
       allowNull: false,
     },
-    updatedAt: {
-      type: DataTypes.DATE,
+    item_description: {
+      type: DataTypes.TEXT,
+      allowNull: false,
+    },
+    color: {
+      type: DataTypes.STRING,
+      allowNull: false,
+    },
+    daily_price: {
+      type: DataTypes.DECIMAL(10, 2),
+      allowNull: false,
+    },
+    weekly_price: {
+      type: DataTypes.DECIMAL(10, 2),
+      allowNull: false,
+    },
+    monthly_price: {
+      type: DataTypes.DECIMAL(10, 2),
+      allowNull: false,
+    },
+    cleaning_fee: {
+      type: DataTypes.DECIMAL(10, 2),
+      allowNull: false,
+    },
+    transport_fee: {
+      type: DataTypes.DECIMAL(10, 2),
+      allowNull: false,
+    },
+    minimum_rental_period: {
+      type: DataTypes.INTEGER,
       allowNull: false,
     },
   },
   {
     sequelize,
-    modelName: 'Item',
-    tableName: 'items',
-    timestamps: true
+    modelName: "Item",
+    tableName: "items",
+    timestamps: true,
   }
 );
 

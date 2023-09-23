@@ -1,5 +1,5 @@
 import express from 'express';
-import { registerUser, loginUser, forgotPassword, startVerifyUserEmail, tokenVerification } from '../controllers/userController';
+import { registerUser, loginUser, forgotPassword, startVerifyUserEmail, tokenVerification, endVerifyUserEmail, resetPassword } from '../controllers/userController';
 
 // Authorization Routes
 
@@ -13,7 +13,9 @@ authRouter.use(express.json());
 
 authRouter.post('/register', registerUser);
 authRouter.post('/login', loginUser);
-authRouter.post('/verifyUserEmail', startVerifyUserEmail);
+authRouter.post('/verify-user-email/start', startVerifyUserEmail);
+authRouter.post('/verify-user-email/end', endVerifyUserEmail);
 authRouter.post('/forgot-password', forgotPassword);
+authRouter.post('/reset-password', resetPassword);
 
 export default authRouter;
