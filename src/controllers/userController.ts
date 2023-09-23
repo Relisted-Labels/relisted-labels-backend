@@ -137,26 +137,30 @@ export async function tokenVerification(req: Request, res: Response, next: Funct
     const expDate = decodedToken?.exp;
     const userId = decodedToken?.user.id;
 
-    if (expDate < Math.floor(Date.now() / 1000)) {
-      const refreshToken = await RefreshToken.getTokenByUserId(userId);
+    if (!expDate) {
+      return res.status(401).json({ message: 'Invalid or expired token. Please login again.' });
+    }
+  
+      if (expDate < Math.floor(Date.now() / 1000)) {
+        const refreshToken = await RefreshToken.getTokenByUserId(userId);
 
-      if (refreshToken) {
-        const tokenIsValid = await refreshToken.checkTokenValidity();
+        if (refreshToken) {
+          const tokenIsValid = await refreshToken.checkTokenValidity();
 
-        if (tokenIsValid) {
-          const accessToken = await AGT.generate(userId);
+          if (tokenIsValid) {
+            const accessToken = await AGT.generate(userId);
 
-            res.setHeader('Authorization', `Bearer ${accessToken}`);
-            return next();
+              res.setHeader('Authorization', `Bearer ${accessToken}`);
+              return next();
+            } else {
+              return res.status(404).json({ message: 'User not found' });
+            }
           } else {
-            return res.status(404).json({ message: 'User not found' });
+            return res.status(401).json({ message: 'Invalid or expired refresh token. Please login again.' });
           }
         } else {
-          return res.status(401).json({ message: 'Invalid or expired refresh token. Please login again.' });
+          next();
         }
-      } else {
-        return res.status(401).json({ message: 'Something went wrong. Please login again.' });
-      }
     }
   catch (error) {
     console.error('Error in tokenVerification:', error);
