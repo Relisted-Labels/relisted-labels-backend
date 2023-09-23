@@ -137,7 +137,7 @@ export async function tokenVerification(req: Request, res: Response, next: Funct
     const expDate = decodedToken?.exp;
     const userId = decodedToken?.user.id;
 
-    if (expDate && expDate < Math.floor(Date.now() / 1000)) {
+    if (expDate < Math.floor(Date.now() / 1000)) {
       const refreshToken = await RefreshToken.getTokenByUserId(userId);
 
       if (refreshToken) {
