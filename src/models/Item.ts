@@ -30,6 +30,7 @@ class Item extends Model {
     Item.belongsTo(models.User, { foreignKey: 'owner_id' });
     Item.belongsTo(models.Brand, { foreignKey: 'brand_id' });
     Item.belongsTo(models.Category, { foreignKey: 'category_id' });
+    Item.belongsTo(models.DressType, { foreignKey: 'item_type' });
   }
   public static async createItem(
     owner_id: number,

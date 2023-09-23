@@ -14,7 +14,9 @@ class User extends Model {
   private is_email_verified!: boolean;
 
   static associate(models: any) {
-    User.hasMany(Item);
+    User.hasMany(Item, {
+      foreignKey: 'owner_id',
+    });
     User.hasOne(RefreshToken);
     User.hasOne(UserProfile);
 

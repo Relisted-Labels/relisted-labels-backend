@@ -5,9 +5,12 @@ import Item from "./Item";
 class Category extends Model {
     id!: number;
     name!: string;
+    featured!: boolean;
 
     static associate(models: any) {
-        Category.hasMany(models.Item);
+        Category.hasMany(models.Item, {
+            foreignKey: 'category_id',
+        });
     }
 
     static async createCategory(name: string): Promise<Category | null> {
@@ -77,6 +80,11 @@ Category.init(
             type: DataTypes.STRING,
             allowNull: false,
         },
+        featured: {
+            type: DataTypes.BOOLEAN,
+            allowNull: false,
+            defaultValue: false
+        }
     }, 
     {
         sequelize,

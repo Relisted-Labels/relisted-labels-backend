@@ -4,6 +4,13 @@ import sequelize from '../config/database'; // Import your Sequelize instance
 class Brand extends Model {
   public id!: number;
   public name!: string;
+  public featured!: boolean;
+
+  static associate(models: any) {
+    Brand.hasMany(models.Item, {
+      foreignKey: 'brand_id',
+    })
+  }
 
   static async createBrand(name: string): Promise<Brand | null> {
     try {
@@ -69,6 +76,11 @@ Brand.init(
       type: DataTypes.STRING(255),
       allowNull: false,
     },
+    featured: {
+      type: DataTypes.BOOLEAN,
+      allowNull: false,
+      defaultValue: false,
+    }
   },
   {
     sequelize,
