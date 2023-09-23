@@ -93,6 +93,7 @@ export const createItem = async (req: Request, res: Response) => {
   try {
     const { owner_id, owner_name, item_type, item_size, tags, brand_id, category_id, item_name, item_description, color, daily_price, weekly_price,  monthly_price, cleaning_fee, transport_fee, minimal_rental_period  } = req.body;
     const imageFiles: Express.Multer.File[] = req.files as Express.Multer.File[] || [];
+    console.log("File uploaded!!")
 
     if (!imageFiles) {
       return res.status(400).json({ success: false, message: 'No image files were uploaded' });
@@ -106,6 +107,7 @@ export const createItem = async (req: Request, res: Response) => {
 
     for (const imageFile of imageFiles) {
       try {
+        console.log("About to upload to cloudinary.")
         const result = await cloudinary.uploader.upload(imageFile.path, {
           folder: 'rl-dev',
           use_filename: true,
