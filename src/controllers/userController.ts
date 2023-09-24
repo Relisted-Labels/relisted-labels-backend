@@ -139,7 +139,7 @@ export async function tokenVerification(req: Request, res: Response, next: Funct
 
     console.log("Decoded token:", decodedToken);
     if (!expDate) {
-      return res.status(401).json({ message: 'Invalid or expired token. Please login again.' });
+      return res.status(401).json({ error: 'Invalid or expired token. Please login again.' });
     }
     console.log("Token is valid.");
       if (expDate < Math.floor(Date.now() / 1000)) {
@@ -155,10 +155,10 @@ export async function tokenVerification(req: Request, res: Response, next: Funct
               res.setHeader('Authorization', `Bearer ${accessToken}`);
               return next();
             } else {
-              return res.status(404).json({ message: 'User not found' });
+              return res.status(404).json({ error: 'User not found' });
             }
           } else {
-            return res.status(401).json({ message: 'Invalid or expired refresh token. Please login again.' });
+            return res.status(401).json({ error: 'Invalid or expired refresh token. Please login again.' });
           }
         } else {
           console.log("Moving on to next function.")

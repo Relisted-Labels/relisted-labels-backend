@@ -1,6 +1,6 @@
 import express from 'express';
 import { createItem, getItem } from '../controllers/ItemController';
-import { upload } from '../config/multerConfig';
+// import { upload } from '../config/multerConfig';
 import { v2 as cloudinary } from 'cloudinary';
 import { tokenVerification } from '../controllers/userController';
 
@@ -15,7 +15,7 @@ import { tokenVerification } from '../controllers/userController';
 const itemRouter = express.Router();
 itemRouter.use(express.json());
 
-itemRouter.post('/create-item', tokenVerification, upload.array('images', 5), createItem);
+itemRouter.post('/create-item', tokenVerification, createItem);
 itemRouter.get('/get-item', tokenVerification, getItem)
 // itemRouter.get('/search:criterion:value', searchItems);
 
