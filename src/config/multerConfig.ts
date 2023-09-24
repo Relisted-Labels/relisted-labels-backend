@@ -5,7 +5,7 @@ import path from 'path'; // Import the path module
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
     // Use path.join to create a relative path to the 'uploads' directory
-    const uploadDir = path.join(__dirname, 'uploads');
+    const uploadDir = path.join(__dirname, '/uploads');
     cb(null, uploadDir);
   },
   filename: (req, file, cb) => {
