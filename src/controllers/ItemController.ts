@@ -88,7 +88,20 @@ export const deleteUploadedImages = async (imageUrls: string[]) => {
     }
 };
   
-
+const uploadToCloudinary = async (req: Request, res: Response, next: Function) => {
+  try {
+    const results = await Promise.all(
+      req.files.map(async (file) => {
+        const result = await cloudinary.uploader.upload(file.path);
+        return result.secure_url;
+      })
+    );
+    req.cloudinaryUrls: string[] = results;
+    next();
+  } catch (error) {
+    res.status(500).json({ error: 'Error uploading to Cloudinary' });
+  }
+};
 export const createItem = async (req: Request, res: Response) => {
   try {
     const { owner_id, owner_name, item_type, item_size, tags, brand_id, category_id, item_name, item_description, color, daily_price, weekly_price,  monthly_price, cleaning_fee, transport_fee, minimal_rental_period  } = req.body;
