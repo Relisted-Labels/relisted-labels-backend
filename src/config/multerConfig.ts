@@ -3,7 +3,7 @@ import { v4 as uuidv4 } from 'uuid';
 
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
-    cb(null, '../uploads'); // Specify the directory where uploaded files should be stored
+    cb(null, '/uploads'); // Specify the directory where uploaded files should be stored
   },
   filename: (req, file, cb) => {
     const originalName = file.originalname;
