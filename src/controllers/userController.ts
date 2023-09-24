@@ -55,8 +55,8 @@ export async function registerUser(req: Request, res: Response): Promise<void> {
 export async function startVerifyUserEmail(req: Request, res: Response): Promise<void> {
   const { userId, email } = req.body;
   const verifyToken = Math.floor(Math.random() * (999999 - 100000 + 1)) + 100000;
-  const verifyLink = jwt.sign({ userId, verifyToken }, jwtSecret, { expiresIn: '10m' });
-  const emailText = `<p>Welcome to Relisted Labels! This is a fashion forward platform that promotes re-use and upcycling of African styles, that will make you look like a glamorous African Queen!</p><p>To verify your email, click on the link below:</p><p><a href="http://relisted-labels-frontend.vercel.app/verifyEmail/${verifyLink}">Verify Email</a></p>. This token expires in 10 minutes, btw. Goodluck!`;
+  const verifyLink = jwt.sign({ userId, verifyToken }, jwtSecret, { expiresIn: '12m' });
+  const emailText = `<p>Welcome to Relisted Labels! This is a fashion forward platform that promotes re-use and upcycling of African styles, that will make you look like a glamorous African Queen!</p><p>To verify your email, click on the link below:</p><p><a href="http://relisted-labels-frontend.vercel.app/verifyEmail/?token=${verifyLink}">Verify Email</a></p>. This token expires in 10 minutes, btw. Goodluck!`;
   try {
     await sendEmail(email, 'Verify your email', emailText);
     res.status(200).json({ message: 'Email sent' });
@@ -131,19 +131,17 @@ export async function tokenVerification(req: Request, res: Response, next: Funct
   if (!token) {
     return res.status(401).json({ message: 'Always include the JWT in your headers!' });
   }
-  console.log("JWT found, commencing token verification.");
+
   try {
     const decodedToken = jwt.decode(token) as { exp: number; user: { id: number } };
     const expDate = decodedToken?.exp;
     const userId = decodedToken?.user.id;
 
-    console.log("Decoded token:", decodedToken);
     if (!expDate) {
-      return res.status(401).json({ error: 'Invalid or expired token. Please login again.' });
+      return res.status(401).json({ message: 'Invalid or expired token. Please login again.' });
     }
-    console.log("Token is valid.");
+  
       if (expDate < Math.floor(Date.now() / 1000)) {
-        console.log("Attempting to get and fetch refresh token.");
         const refreshToken = await RefreshToken.getTokenByUserId(userId);
 
         if (refreshToken) {
@@ -161,14 +159,15 @@ export async function tokenVerification(req: Request, res: Response, next: Funct
             return res.status(401).json({ error: 'Invalid or expired refresh token. Please login again.' });
           }
         } else {
-          console.log("Moving on to next function.")
-          return next();
+          next();
         }
     }
   catch (error) {
     console.error('Error in tokenVerification:', error);
-    return res.status(500).json({ message: 'Internal server error' });
+    return res.status(500).json({ error: 'Internal server error' });
   }
+
+  return res.status(500).json({ error: 'Internal server error' });
 }
 
 export async function forgotPassword(req: Request, res: Response) {
@@ -177,11 +176,11 @@ export async function forgotPassword(req: Request, res: Response) {
   if (user) {
     const userId = user.getId()
     const resetToken = Math.floor(Math.random() * (999999 - 100000 + 1)) + 100000;
-    const resetLink = jwt.sign({ userId, resetToken }, jwtSecret, { expiresIn: '20m' });
+    const resetLink = jwt.sign({ userId, resetToken }, jwtSecret, { expiresIn: '12m' });
     const emailText = `Hi there! A little birdie from Relisted Labels told me you forgot your password. No worries, we're here to help!
 
     To reset your password, click on the link below:
-    <a href="https://example.com/reset-password?token=${resetLink}">Reset Password</a>
+    <a href="https://relisted-labels-frontend.vercel.app/resetPassword?token=${resetLink}">Reset Password</a>
     
     This link will expire in 10 minutes, so don't wait too long! If you didn't request this password reset, please ignore this email.
     
