@@ -1,9 +1,12 @@
 import multer from 'multer';
 import { v4 as uuidv4 } from 'uuid';
+import path from 'path'; // Import the path module
 
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
-    cb(null, '/uploads'); // Specify the directory where uploaded files should be stored
+    // Use path.join to create a relative path to the 'uploads' directory
+    const uploadDir = path.join(__dirname, 'uploads');
+    cb(null, uploadDir);
   },
   filename: (req, file, cb) => {
     const originalName = file.originalname;
