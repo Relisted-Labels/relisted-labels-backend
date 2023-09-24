@@ -131,17 +131,19 @@ export async function tokenVerification(req: Request, res: Response, next: Funct
   if (!token) {
     return res.status(401).json({ message: 'Always include the JWT in your headers!' });
   }
-
+  console.log("JWT found, commencing token verification.");
   try {
     const decodedToken = jwt.decode(token) as { exp: number; user: { id: number } };
     const expDate = decodedToken?.exp;
     const userId = decodedToken?.user.id;
 
+    console.log("Decoded token:", decodedToken);
     if (!expDate) {
       return res.status(401).json({ message: 'Invalid or expired token. Please login again.' });
     }
-  
+    console.log("Token is valid.");
       if (expDate < Math.floor(Date.now() / 1000)) {
+        console.log("Attempting to get and fetch refresh token.");
         const refreshToken = await RefreshToken.getTokenByUserId(userId);
 
         if (refreshToken) {
@@ -159,15 +161,14 @@ export async function tokenVerification(req: Request, res: Response, next: Funct
             return res.status(401).json({ message: 'Invalid or expired refresh token. Please login again.' });
           }
         } else {
-          next();
+          console.log("Moving on to next function.")
+          return next();
         }
     }
   catch (error) {
     console.error('Error in tokenVerification:', error);
     return res.status(500).json({ message: 'Internal server error' });
   }
-
-  return res.status(500).json({ message: 'Internal server error' });
 }
 
 export async function forgotPassword(req: Request, res: Response) {
