@@ -179,8 +179,8 @@ export async function forgotPassword(req: Request, res: Response) {
     const resetLink = jwt.sign({ userId, resetToken }, jwtSecret, { expiresIn: '12m' });
     const emailText = `Hi there! A little birdie from Relisted Labels told me you forgot your password. No worries, we're here to help!
 
-    To reset your password, click on the link below:
-    <a href="https://relisted-labels-frontend.vercel.app/resetPassword?token=${resetLink}">Reset Password</a>
+    To reset your password, click on the link below:<br><br>
+    <a href="https://relisted-labels-frontend.vercel.app/resetPassword?token=${resetLink}">Reset Password</a><br><br>
     
     This link will expire in 10 minutes, so don't wait too long! If you didn't request this password reset, please ignore this email.
     
