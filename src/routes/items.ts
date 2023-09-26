@@ -1,6 +1,6 @@
 import express from 'express';
 import { createItem, getItem } from '../controllers/ItemController';
-import { multerUploads } from '../config/multerConfig';
+import { upload } from '../config/multerConfig';
 import { tokenVerification } from '../controllers/userController';
 
 
@@ -18,7 +18,7 @@ itemRouter.use(express.json());
 itemRouter.post(
   '/create-item',
   tokenVerification,
-  multerUploads.array('images', 5),
+  upload.array('images', 5),
   createItem
 );
 itemRouter.get('/get-item', tokenVerification, getItem)
