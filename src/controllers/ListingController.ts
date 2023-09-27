@@ -1,6 +1,6 @@
 // import { Request, Response } from 'express';
 // import Item from '../models/Item';
-// import Collection from '../models/Collection';
+// import brand from '../models/Brand';
 // import Category from '../models/Category';
 // import { SearchCriterion } from '../models/Item';
 
